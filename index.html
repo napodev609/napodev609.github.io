@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Лабубу Кликер - Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary: #FF9EC5;
+            --secondary: #A5D8FF;
+            --accent: #FFD166;
+            --background: #FFF5F7;
+            --card: #FFFFFF;
+            --text: #5A3E51;
+            --boss-color: #FF6B6B;
+            --player-color: #4CAF50;
+            --common: #B0B0B0;
+            --rare: #5BCEFA;
+            --epic: #F5A9B8;
+            --legendary: #FFD700;
+            --shadow: 0 4px 20px rgba(90, 62, 81, 0.15);
+            --radius: 20px;
+            --radius-sm: 12px;
+        }
+        
+        body {
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: var(--text);
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #ffeff4 0%, #e6f4ff 100%);
+            touch-action: manipulation;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            height: 95vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 15px 15px 10px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(165, 216, 255, 0.3);
+        }
+        
+        .tg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px 8px;
+            width: 100%;
+        }
+        
+        .tg-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s;
+        }
+        
+        .tg-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .title {
+            font-size: 1.6rem;
+            color: white;
+            text-shadow: 2px 2px 0 rgba(90, 62, 81, 0.3);
+            margin-bottom: 5px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 90%;
+            margin: 0 auto;
+            text-shadow: 1px 1px 1px rgba(90, 62, 81, 0.3);
+            font-weight: 500;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 10px;
+            background: rgba(255, 255, 255, 0.85);
+            border-bottom: 3px solid rgba(165, 216, 255, 0.3);
+            gap: 8px;
+            z-index: 5;
+        }
+        
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            min-width: 0;
+            box-shadow: var(--shadow);
+            border: 2px solid rgba(165, 216, 255, 0.5);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-title {
+            font-size: 0.75rem;
+            color: var(--text);
+            margin-bottom: 3px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #FF6B9C;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .tab-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+            transition: all 0.4s ease;
+        }
+        
+        /* Главная игра */
+        .game-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 15px;
+        }
+        
+        .labubu-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+        }
+        
+        .labubu-container {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin-bottom: 15px;
+            perspective: 1000px;
+        }
+        
+        .labubu-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: contain;
+            border: 8px solid var(--accent);
+            box-shadow: 0 0 30px rgba(255, 209, 102, 0.6);
+            background: white;
+            transition: all 0.3s;
+            padding: 15px;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .labubu-container:hover .labubu-image {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 0 40px rgba(255, 209, 102, 0.8);
+        }
+        
+        .labubu-container:active .labubu-image {
+            transform: scale(0.95);
+        }
+        
+        .click-effect {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: clickEffect 0.6s forwards;
+        }
+        
+        @keyframes clickEffect {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        .shop-area {
+            background: rgba(255, 248, 248, 0.7);
+            border-radius: var(--radius);
+            border: 2px solid rgba(165, 216, 255, 0.5);
+            padding: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .shop-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            color: #FF6B9C;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            padding-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .shop-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        
+        /* Кейсы */
+        .cases-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 5px;
+        }
+        
+        .case-item {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s;
+            border: 2px solid;
+        }
+        
+        .case-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .case-item.common {
+            border-color: var(--common);
+            background: linear-gradient(to bottom, rgba(176, 176, 176, 0.1), white);
+        }
+        
+        .case-item.rare {
+            border-color: var(--rare);
+            background: linear-gradient(to bottom, rgba(91, 206, 250, 0.1), white);
+        }
+        
+        .case-item.epic {
+            border-color: var(--epic);
+            background: linear-gradient(to bottom, rgba(245, 169, 184, 0.1), white);
+        }
+        
+        .case-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        
+        .case-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            border-radius: 15px;
+            background: #f8f8f8;
+            padding: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .case-opening-animation {
+            animation: caseOpening 2.5s ease-in-out forwards;
+        }
+        
+        @keyframes caseOpening {
+            0% { transform: rotateY(0) scale(1); }
+            20% { transform: rotateY(90deg) scale(1.1); }
+            40% { transform: rotateY(180deg) scale(1.2); }
+            60% { transform: rotateY(270deg) scale(1.1); }
+            80% { transform: rotateY(360deg) scale(1); }
+            100% { transform: rotateY(360deg) scale(1); }
+        }
+        
+        .case-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #FF6B9C;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .case-button {
+            background: linear-gradient(135deg, var(--secondary) 0%, #6EC5FF 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(165, 216, 255, 0.5);
+            width: 100%;
+            max-width: 200px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .case-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(165, 216, 255, 0.7);
+        }
+        
+        .case-button:disabled {
+            background: #CCCCCC;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .case-chances {
+            width: 100%;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--secondary);
+        }
+        
+        .chance-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .chance-name {
+            display: flex;
+            align-items: center;
+        }
+        
+        .chance-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        /* Боссы */
+        .bosses-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+        
+        .boss-card {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 3px solid var(--boss-color);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .boss-card.defeated {
+            border-color: var(--player-color);
+            opacity: 0.85;
+        }
+        
+        .boss-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 156, 0.3);
+        }
+        
+        .boss-image {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            border: 3px solid var(--boss-color);
+            background: #f8f8f8;
+            padding: 8px;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .boss-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--boss-color);
+            margin-bottom: 8px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .boss-stats {
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+        
+        .boss-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .boss-reward {
+            background: var(--accent);
+            color: var(--text);
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .fight-button {
+            background: linear-gradient(135deg, var(--boss-color) 0%, #FF8E8E 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 10px;
+            width: 100%;
+            font-size: 0.9rem;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+        }
+        
+        .fight-button.defeated {
+            background: var(--player-color);
+        }
+        
+        /* Битва */
+        .battle-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            height: 100%;
+            justify-content: center;
+        }
+        
+        .battle-header {
+            font-size: 1.6rem;
+            color: var(--boss-color);
+            margin-bottom: 15px;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+        
+        .battle-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .battle-player, .battle-boss {
+            text-align: center;
+            width: 40%;
+            min-width: 120px;
+            flex: 1;
+        }
+        
+        .battle-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .battle-image {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            border: 5px solid var(--accent);
+            background: #f8f8f8;
+            padding: 10px;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .battle-boss .battle-image {
+            border-color: var(--boss-color);
+        }
+        
+        .battle-score {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 5px 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .battle-player .battle-score {
+            color: var(--player-color);
+        }
+        
+        .battle-boss .battle-score {
+            color: var(--boss-color);
+        }
+        
+        .timer {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 15px 0;
+            color: var(--primary);
+            font-family: 'Poppins', sans-serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--player-color), #2E7D32);
+            width: 50%;
+            transition: width 0.5s;
+            border-radius: 10px;
+        }
+        
+        .battle-result {
+            font-size: 1.8rem;
+            font-weight: 800;
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: var(--shadow);
+        }
+        
+        .victory {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(46, 125, 50, 0.2));
+            color: var(--player-color);
+            border: 2px solid var(--player-color);
+        }
+        
+        .defeat {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(183, 28, 28, 0.2));
+            color: var(--boss-color);
+            border: 2px solid var(--boss-color);
+        }
+        
+        /* Анимация открытия кейса */
+        .case-opening {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .case-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+            animation: caseOpen 0.5s forwards;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes caseOpen {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .case-result-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--primary);
+        }
+        
+        .case-result-image {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            margin: 0 auto;
+            border-radius: 20px;
+            border: 5px solid;
+            background: #f8f8f8;
+            padding: 15px;
+            animation: pulse 1.5s infinite;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .case-result-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 15px 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .case-result-description {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+        
+        .close-case {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 6px 15px rgba(255, 107, 156, 0.4);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .close-case:hover {
+            transform: scale(1.05);
+            background: #FF6B9C;
+            box-shadow: 0 8px 20px rgba(255, 107, 156, 0.6);
+        }
+        
+        /* Общие стили */
+        .bonus-notification {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 25px;
+            border-radius: 15px;
+            border-left: 5px solid var(--accent);
+            font-size: 1.1rem;
+            animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+            color: var(--text);
+            font-weight: 700;
+            text-align: center;
+            max-width: 90%;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        @keyframes slideIn {
+            from { top: -100px; opacity: 0; }
+            to { top: 10px; opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        footer {
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            font-size: 0.75rem;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(90, 62, 81, 0.5);
+            font-weight: 600;
+        }
+        
+        .back-button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 15px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(165, 216, 255, 0.5);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .back-button:hover {
+            background: #6EC5FF;
+            transform: scale(1.05);
+        }
+        
+        /* Коллекция */
+        .collection-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+        
+        .collection-item {
+            background: var(--card);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--secondary);
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .collection-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(165, 216, 255, 0.3);
+        }
+        
+        .collection-item.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(255, 158, 197, 0.6);
+            transform: scale(1.05);
+        }
+        
+        .collection-image {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            background: #f8f8f8;
+            padding: 8px;
+            background: radial-gradient(circle, #ffffff 0%, #f8f8f8 100%);
+        }
+        
+        .collection-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .collection-rarity {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .collection-common { background: var(--common); color: white; }
+        .collection-rare { background: var(--rare); color: white; }
+        .collection-epic { background: var(--epic); color: white; }
+        .collection-legendary { background: var(--legendary); color: #5A3E51; }
+        
+        .collection-income {
+            font-size: 0.85rem;
+            margin-top: 3px;
+            color: #FF6B9C;
+            font-weight: 700;
+        }
+        
+        .collection-hint {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            max-width: 800px;
+            padding: 0 10px;
+            line-height: 1.5;
+        }
+        
+        .coins-animation {
+            position: absolute;
+            font-size: 1.1rem;
+            color: gold;
+            font-weight: 800;
+            pointer-events: none;
+            animation: floatUp 1.5s forwards;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            z-index: 10;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-60px); opacity: 0; }
+        }
+        
+        .rarity-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+        
+        .common-badge { background: var(--common); color: white; }
+        .rare-badge { background: var(--rare); color: white; }
+        .epic-badge { background: var(--epic); color: white; }
+        .legendary-badge { background: var(--legendary); color: #5A3E51; }
+        
+        /* Навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: white;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            padding: 8px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
+            opacity: 0.7;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+        
+        .nav-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+        
+        /* Битва - кнопка клика */
+        #battle-click-btn {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            padding: 15px;
+            font-size: 1.4rem;
+            z-index: 99;
+            box-shadow: 0 10px 25px rgba(255, 107, 156, 0.5);
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, #FF6B9C 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 2px rgba(90, 62, 81, 0.5);
+            transition: all 0.3s;
+        }
+        
+        #battle-click-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+        
+        /* Медиа-запросы */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+                max-width: 100%;
+            }
+            
+            .header {
+                padding: 12px 10px 8px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .subtitle {
+                font-size: 0.85rem;
+            }
+            
+            .stat-title {
+                font-size: 0.7rem;
+            }
+            
+            .stat-value {
+                font-size: 1.1rem;
+            }
+            
+            .labubu-image {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .bosses-container {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 10px;
+            }
+            
+            .collection-container {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            
+            #battle-click-btn {
+                bottom: 70px;
+                padding: 12px;
+                font-size: 1.3rem;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="tg-header">
+                <button class="tg-close-btn" id="tg-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div></div>
+            </div>
+            
+            <h1 class="title"><i class="fas fa-paw"></i> Лабубу Кликер</h1>
+            <p class="subtitle">Тыкай в Лабубу, открывай кейсы и побеждай боссов!</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-title">Монеты</div>
+                <div class="stat-value" id="coins">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Клики</div>
+                <div class="stat-value" id="clicks">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Доход/клик</div>
+                <div class="stat-value" id="income">0.1</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Вкладка игры -->
+            <div class="tab-content active" id="game-tab">
+                <div class="game-content">
+                    <div class="labubu-area">
+                        <div class="labubu-container" id="labubu-container">
+                            <img src="https://kicksmania.ru/storage/app/uploads/public/683/743/50b/thumb_8932_400_400_0_0_fit.png" alt="Labubu Classic" class="labubu-image" id="labubu-img">
+                        </div>
+                    </div>
+                    
+                    <div class="shop-area">
+                        <h2 class="shop-title"><i class="fas fa-trophy"></i> Прогресс боссов</h2>
+                        <div id="bosses-progress"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладка кейсов -->
+            <div class="tab-content" id="cases-tab">
+                <div class="shop-area" style="max-height: none;">
+                    <h2 class="shop-title"><i class="fas fa-gift"></i> Кейсы с Лабубу</h2>
+                    <div class="cases-container" id="cases-container"></div>
+                </div>
+            </div>
+            
+            <!-- Вкладка боссов -->
+            <div class="tab-content" id="bosses-tab">
+                <div class="bosses-area">
+                    <h2 class="shop-title"><i class="fas fa-dragon"></i> Сражения с боссами</h2>
+                    <p class="collection-hint">
+                        Сразитесь с могущественными боссами! У вас есть 60 секунд, чтобы набрать больше кликов, чем ваш противник.
+                        За победу вы получите ценные награды!
+                    </p>
+                    <div class="bosses-container" id="bosses-container"></div>
+                </div>
+            </div>
+            
+            <!-- Вкладка коллекции -->
+            <div class="tab-content" id="collection-tab">
+                <div class="collection-area">
+                    <h2 class="shop-title"><i class="fas fa-star"></i> Ваша Коллекция Лабубу</h2>
+                    <p class="collection-hint">
+                        Здесь собраны все ваши Лабубу! Кликните на любого персонажа, чтобы установить его на главный экран.
+                    </p>
+                    <div class="collection-container" id="collection-container"></div>
+                </div>
+            </div>
+            
+            <!-- Экран битвы -->
+            <div class="tab-content" id="battle-tab">
+                <div class="battle-area">
+                    <h2 class="battle-header" id="battle-title">Битва с боссом</h2>
+                    <div class="timer" id="battle-timer">60</div>
+                    
+                    <div class="battle-container">
+                        <div class="battle-player">
+                            <div class="battle-title">Ваш Лабубу</div>
+                            <img src="https://i.imgur.com/8JQYf7j.png" class="battle-image" id="player-img">
+                            <div class="battle-score" id="player-score">0</div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; color: var(--boss-color);">VS</div>
+                        
+                        <div class="battle-boss">
+                            <div class="battle-title" id="boss-name">Босс</div>
+                            <img src="https://i.imgur.com/5w1gFpL.png" class="battle-image" id="boss-img">
+                            <div class="battle-score" id="boss-score">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <div class="battle-result" id="battle-result"></div>
+                    
+                    <button class="back-button" id="back-button">
+                        <i class="fas fa-arrow-left"></i> Вернуться в меню
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Кнопка для битвы -->
+        <button class="click-button" id="battle-click-btn">Кликай! 👆</button>
+        
+        <!-- Анимация открытия кейса -->
+        <div class="case-opening" id="case-opening">
+            <div class="case-content" id="case-content">
+                <div class="case-result-title" id="case-result-title">Поздравляем!</div>
+                <img src="" class="case-result-image" id="case-result-image">
+                <div class="case-result-name" id="case-result-name"></div>
+                <div class="case-result-description" id="case-result-description"></div>
+                <button class="close-case" id="close-case">Закрыть</button>
+            </div>
+        </div>
+        
+        <div class="bonus-notification" id="bonus-notification">
+            Бонус за достижение!
+        </div>
+        
+        <footer>
+            Игра "Лабубу Кликер" | Кейсы и Боссы | Создано с ❤️ для Telegram
+        </footer>
+    </div>
+    
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-item active" data-tab="game">
+            <i class="fas fa-gamepad nav-icon"></i>
+            <span>Игра</span>
+        </div>
+        <div class="nav-item" data-tab="cases">
+            <i class="fas fa-gift nav-icon"></i>
+            <span>Кейсы</span>
+        </div>
+        <div class="nav-item" data-tab="bosses">
+            <i class="fas fa-dragon nav-icon"></i>
+            <span>Боссы</span>
+        </div>
+        <div class="nav-item" data-tab="collection">
+            <i class="fas fa-star nav-icon"></i>
+            <span>Коллекция</span>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Гарантированно рабочие изображения
+        const labubus = [
+            {
+                id: 1,
+                name: "Labubu Classic",
+                series: "The Monsters",
+                rarity: "common",
+                income: 0.1,
+                image: "https://kicksmania.ru/storage/app/uploads/public/683/743/50b/thumb_8932_400_400_0_0_fit.png",
+                description: "Классический Лабубу с озорной улыбкой"
+            },
+            {
+                id: 2,
+                name: "WINGS OF FANTASY Labubu",
+                series: "The Monsters: Gold Series",
+                rarity: "rare",
+                income: 0.3,
+                image: "https://prod-america-res.popmart.com/default/20240925_114646_929763____1_____1200x1200.jpg",
+                description: "Виниловая плюшевая кукла Лабубу"
+            },
+            {
+                id: 3,
+                name: "Labubu Trick-or-Treater",
+                series: "Halloween Adventure",
+                rarity: "rare",
+                income: 0.5,
+                image: "https://prod-america-res.popmart.com/default/20240911_140052_902344____labubu-trick-or-treater-figure-figurine-pop-mart-us-1_____1200x1200.jpg",
+                description: "Фигурка LABUBU Trick-or-Treater"
+            },
+            {
+                id: 4,
+                name: "Coca-Cola Labubu",
+                series: "Coca-Cola Collaboration",
+                rarity: "epic",
+                income: 1,
+                image: "https://prod-america-res.popmart.com/default/20250107_162203_821182____2_the-monsters-coca-cola-series-vinyl-face-blind-box_accessories_details_popmart-us_____1200x1200.jpg",
+                description: "Ограниченная серия Coca-Cola"
+            },
+            {
+                id: 5,
+                name: "Labubu Luffy",
+                series: "One Piece Collaboration",
+                rarity: "epic",
+                income: 1.5,
+                image: "https://prod-america-res.popmart.com/default/20250320_140441_305459____1_the-monsters-one-piece-series-figures_blind-boxes_details_popmart-us_____1200x1200.jpg",
+                description: "Лабубу в образе капитана Луффи"
+            },
+            {
+                id: 6,
+                name: "Labubu DIMOO",
+                series: "One Piece Collaboration",
+                rarity: "epic",
+                income: 2,
+                image: "https://prod-america-res.popmart.com/default/20230927_113104_218403__1200x1200.jpg",
+                description: "Лабубу в образе легендарного DIMOO"
+            },
+            {
+                id: 7,
+                name: "Labubu PINK",
+                series: "Louvre Exclusive",
+                rarity: "legendary",
+                income: 4,
+                image: "https://prod-america-res.popmart.com/default/20240313_173349_222944__1200x1200.jpg",
+                description: "Эксклюзивный арт-дизайн Pink"
+            },
+            {
+                id: 8,
+                name: "Labubu King",
+                series: "Royal Collection",
+                rarity: "legendary",
+                income: 6,
+                image: "https://kicksmania.ru/storage/app/uploads/public/681/f76/60c/thumb_8637_400_400_0_0_fit.png",
+                description: "Королевский Лабубу с роскошной короной"
+            },
+            {
+                id: 9,
+                name: "Labubu Love",
+                series: "POP MART",
+                rarity: "rare",
+                income: 0.8,
+                image: "https://prod-america-res.popmart.com/default/20250123_121659_398103____1_the-monsters-let-s-checkmate-series-vinyl-plush-hanging-card_plush_details_popmart-us_____1200x1200.jpg",
+                description: "Лабубу в образе LOVE"
+            },
+            {
+                id: 10,
+                name: "Labubu MonstersX",
+                series: "POP MART",
+                rarity: "epic",
+                income: 1.2,
+                image: "https://prod-america-res.popmart.com/default/20240111_092846_135210__1200x1200.jpg",
+                description: "Лабубу Монстрик"
+            },
+            {
+                id: 11,
+                name: "Labubu Series Figures",
+                series: "POP MART",
+                rarity: "legendary",
+                income: 3,
+                image: "https://prod-america-res.popmart.com/default/9_BZZIqetj3N_1200x1200.jpg",
+                description: "Супергеройский Лабубу спасает мир"
+            },
+            // Новые Лабубу
+            {
+                id: 12,
+                name: "Labubu Rainbow",
+                series: "Color Collection",
+                rarity: "rare",
+                income: 1.0,
+                image: "https://example.com/labubu12.jpg",
+                description: "Разноцветный Лабубу с радужными элементами"
+            },
+            {
+                id: 13,
+                name: "Labubu Cyberpunk",
+                series: "Future Collection",
+                rarity: "epic",
+                income: 1.8,
+                image: "https://example.com/labubu13.jpg",
+                description: "Киберпанк стиль с неоновыми акцентами"
+            },
+            {
+                id: 14,
+                name: "Labubu Samurai",
+                series: "Warriors Collection",
+                rarity: "epic",
+                income: 2.2,
+                image: "https://example.com/labubu14.jpg",
+                description: "Самурай Лабубу с традиционным мечом"
+            },
+            {
+                id: 15,
+                name: "Labubu Astronaut",
+                series: "Space Collection",
+                rarity: "rare",
+                income: 1.3,
+                image: "https://example.com/labubu15.jpg",
+                description: "Лабубу в скафандре для космических приключений"
+            },
+            {
+                id: 16,
+                name: "Labubu Wizard",
+                series: "Magic Collection",
+                rarity: "epic",
+                income: 1.7,
+                image: "https://example.com/labubu16.jpg",
+                description: "Волшебник с магическим посохом и звездным плащом"
+            },
+            {
+                id: 17,
+                name: "Labubu Ninja",
+                series: "Warriors Collection",
+                rarity: "rare",
+                income: 1.1,
+                image: "https://example.com/labubu17.jpg",
+                description: "Скрытный ниндзя с сюрикенами"
+            },
+            {
+                id: 18,
+                name: "Labubu DJ",
+                series: "Music Collection",
+                rarity: "rare",
+                income: 1.0,
+                image: "https://example.com/labubu18.jpg",
+                description: "Диск-жокей с пультом и наушниками"
+            },
+            {
+                id: 19,
+                name: "Labubu Chef",
+                series: "Profession Collection",
+                rarity: "common",
+                income: 0.7,
+                image: "https://example.com/labubu19.jpg",
+                description: "Шеф-повар с поварской шляпой и скалкой"
+            },
+            {
+                id: 20,
+                name: "Labubu Detective",
+                series: "Mystery Collection",
+                rarity: "epic",
+                income: 1.5,
+                image: "https://example.com/labubu20.jpg",
+                description: "Детектив с увеличительным стеклом"
+            },
+            {
+                id: 21,
+                name: "Labubu Pirate",
+                series: "Adventure Collection",
+                rarity: "rare",
+                income: 1.2,
+                image: "https://example.com/labubu21.jpg",
+                description: "Пират с повязкой на глазу и картой сокровищ"
+            }
+        ];
+
+        // Кейсы
+        const cases = [
+            {
+                id: 1,
+                name: "Обычный Кейс",
+                rarity: "common",
+                price: 50,
+                image: "https://hozyaingorbushki.ru/upload/iblock/a25/6hxzws10f0cofxc2lt3n04fwu7y1nv7p.jpg",
+                chances: [
+                    { rarity: "common", chance: 80 },
+                    { rarity: "rare", chance: 18 },
+                    { rarity: "epic", chance: 2 },
+                    { rarity: "legendary", chance: 0 }
+                ]
+            },
+            {
+                id: 2,
+                name: "Редкий Кейс",
+                rarity: "rare",
+                price: 200,
+                image: "https://hozyaingorbushki.ru/upload/iblock/ece/a5zo8km6bm4uzegtgrqi6rw55jboiv2j.jpg",
+                chances: [
+                    { rarity: "common", chance: 0 },
+                    { rarity: "rare", chance: 70 },
+                    { rarity: "epic", chance: 25 },
+                    { rarity: "legendary", chance: 5 }
+                ]
+            },
+            {
+                id: 3,
+                name: "Эпический Кейс",
+                rarity: "epic",
+                price: 800,
+                image: "https://hozyaingorbushki.ru/upload/iblock/b1c/wx2n0tl548i5q0a9zodzporlg82hrf94.jpg",
+                chances: [
+                    { rarity: "common", chance: 0 },
+                    { rarity: "rare", chance: 0 },
+                    { rarity: "epic", chance: 75 },
+                    { rarity: "legendary", chance: 25 }
+                ]
+            }
+        ];
+
+        // Упрощенные боссы
+        const bosses = [
+            { id: 1, name: "Новичок Джек", cps: 1.5, reward: 50, image: "https://i.imgur.com/5w1gFpL.png", defeated: false },
+            { id: 2, name: "Ученик Кликов", cps: 1.8, reward: 80, image: "https://i.imgur.com/7CJZqY3.png", defeated: false },
+            { id: 3, name: "Мышелов", cps: 2.0, reward: 120, image: "https://i.imgur.com/1Q4p6mX.png", defeated: false },
+            { id: 4, name: "Принц Кликов", cps: 2.2, reward: 180, image: "https://i.imgur.com/3d0Vb9S.png", defeated: false },
+            { id: 5, name: "Железный Тапер", cps: 2.5, reward: 250, image: "https://i.imgur.com/9r1jJ7G.png", defeated: false },
+            { id: 6, name: "Быстрые Пальцы", cps: 2.8, reward: 350, image: "https://i.imgur.com/6u5Tv2k.png", defeated: false },
+            { id: 7, name: "Шустрый Макс", cps: 3.0, reward: 500, image: "https://i.imgur.com/4bVq7cQ.png", defeated: false },
+            { id: 8, name: "Упорный Тэппер", cps: 3.3, reward: 700, image: "https://i.imgur.com/8JQYf7j.png", defeated: false },
+            { id: 9, name: "Повелитель Кликов", cps: 3.5, reward: 1000, image: "https://i.imgur.com/5w1gFpL.png", defeated: false },
+            { id: 10, name: "Звуковой Сэм", cps: 3.8, reward: 1500, image: "https://i.imgur.com/7CJZqY3.png", defeated: false },
+            { id: 11, name: "Механизм Тапов", cps: 4.0, reward: 2200, image: "https://i.imgur.com/1Q4p6mX.png", defeated: false },
+            { id: 12, name: "Король Кликов", cps: 4.3, reward: 3000, image: "https://i.imgur.com/3d0Vb9S.png", defeated: false },
+            { id: 13, name: "Мастер Скорости", cps: 4.5, reward: 4000, image: "https://i.imgur.com/9r1jJ7G.png", defeated: false },
+            { id: 14, name: "Серебряный Чемпион", cps: 4.8, reward: 5500, image: "https://i.imgur.com/6u5Tv2k.png", defeated: false },
+            { id: 15, name: "Звездный Рекордсмен", cps: 5.0, reward: 7500, image: "https://i.imgur.com/4bVq7cQ.png", defeated: false },
+            { id: 16, name: "Несокрушимый Мастер", cps: 5.3, reward: 10000, image: "https://i.imgur.com/8JQYf7j.png", defeated: false },
+            { id: 17, name: "Миф Кликов", cps: 5.5, reward: 13000, image: "https://i.imgur.com/5w1gFpL.png", defeated: false },
+            { id: 18, name: "Хозяин Пальцев", cps: 5.8, reward: 17000, image: "https://i.imgur.com/7CJZqY3.png", defeated: false },
+            { id: 19, name: "Идеальный Кликер", cps: 6.0, reward: 22000, image: "https://i.imgur.com/1Q4p6mX.png", defeated: false },
+            { id: 20, name: "Золотой Чемпион", cps: 6.5, reward: 30000, image: "https://i.imgur.com/3d0Vb9S.png", defeated: false }
+        ];
+
+        // Состояние игры
+        let gameState = {
+            coins: 100,
+            clicks: 0,
+            ownedLabubus: [1],
+            defeatedBosses: [],
+            currentBoss: null,
+            selectedLabubu: 1,
+            battle: {
+                playerScore: 0,
+                bossScore: 0,
+                timer: 60,
+                interval: null
+            },
+            income: 0.1
+        };
+
+        // Элементы DOM
+        const coinsElement = document.getElementById('coins');
+        const clicksElement = document.getElementById('clicks');
+        const incomeElement = document.getElementById('income');
+        const labubuImg = document.getElementById('labubu-img');
+        const labubuContainer = document.getElementById('labubu-container');
+        const casesContainer = document.getElementById('cases-container');
+        const bonusNotification = document.getElementById('bonus-notification');
+        const bossesContainer = document.getElementById('bosses-container');
+        const bossesProgress = document.getElementById('bosses-progress');
+        const collectionContainer = document.getElementById('collection-container');
+        const battleTitle = document.getElementById('battle-title');
+        const bossName = document.getElementById('boss-name');
+        const bossImg = document.getElementById('boss-img');
+        const playerImg = document.getElementById('player-img');
+        const playerScore = document.getElementById('player-score');
+        const bossScore = document.getElementById('boss-score');
+        const battleTimer = document.getElementById('battle-timer');
+        const progressBar = document.getElementById('progress-bar');
+        const battleClickButton = document.getElementById('battle-click-btn');
+        const battleResult = document.getElementById('battle-result');
+        const backButton = document.getElementById('back-button');
+        const caseOpening = document.getElementById('case-opening');
+        const caseContent = document.getElementById('case-content');
+        const caseResultTitle = document.getElementById('case-result-title');
+        const caseResultImage = document.getElementById('case-result-image');
+        const caseResultName = document.getElementById('case-result-name');
+        const caseResultDescription = document.getElementById('case-result-description');
+        const closeCase = document.getElementById('close-case');
+        const tgCloseBtn = document.getElementById('tg-close-btn');
+        const navItems = document.querySelectorAll('.nav-item');
+        let bossInterval;
+
+        // Инициализация игры
+        function initGame() {
+            const savedState = localStorage.getItem('labubuGameState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                gameState = {
+                    ...gameState,
+                    ...parsedState,
+                    battle: {
+                        playerScore: 0,
+                        bossScore: 0,
+                        timer: 60,
+                        interval: null
+                    }
+                };
+            }
+            
+            updateStats();
+            renderCases();
+            renderBosses();
+            renderBossesProgress();
+            renderCollection();
+            updateSelectedLabubu();
+            
+            // Настройка навигации
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const tab = this.dataset.tab;
+                    
+                    // Обновляем активную вкладку в навигации
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Обновляем активную вкладку контента
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    document.getElementById(`${tab}-tab`).classList.add('active');
+                    
+                    // Скрываем кнопку битвы, если не в режиме битвы
+                    if (tab !== "battle") {
+                        battleClickButton.style.display = 'none';
+                    } else {
+                        battleClickButton.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Кнопка возврата в меню
+            backButton.addEventListener('click', () => {
+                navItems.forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('.nav-item[data-tab="bosses"]').classList.add('active');
+                document.getElementById('bosses-tab').classList.add('active');
+                battleClickButton.style.display = 'none';
+            });
+            
+            // Кнопка закрытия кейса
+            closeCase.addEventListener('click', () => {
+                caseOpening.style.display = 'none';
+            });
+            
+            // Кнопка закрытия Telegram приложения
+            tgCloseBtn.addEventListener('click', () => {
+                tg.close();
+            });
+            
+            // Сохранение состояния при закрытии
+            window.addEventListener('beforeunload', saveGameState);
+            
+            // Добавляем обработчик для мобильных устройств
+            labubuContainer.addEventListener('touchend', handleClick);
+            
+            // Скрываем кнопку битвы по умолчанию
+            battleClickButton.style.display = 'none';
+        }
+
+        // Сохранение состояния игры
+        function saveGameState() {
+            localStorage.setItem('labubuGameState', JSON.stringify({
+                coins: gameState.coins,
+                clicks: gameState.clicks,
+                ownedLabubus: gameState.ownedLabubus,
+                defeatedBosses: gameState.defeatedBosses,
+                selectedLabubu: gameState.selectedLabubu,
+                income: gameState.income
+            }));
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            coinsElement.textContent = gameState.coins.toFixed(1);
+            clicksElement.textContent = gameState.clicks;
+            incomeElement.textContent = gameState.income.toFixed(1);
+        }
+
+        // Обработка клика
+        function handleClick() {
+            gameState.clicks++;
+            gameState.coins += gameState.income;
+            createClickEffect();
+            createCoinsAnimation(gameState.income.toFixed(1));
+            checkBonuses();
+            updateStats();
+            labubuImg.classList.add('pulse');
+            setTimeout(() => labubuImg.classList.remove('pulse'), 500);
+            saveGameState();
+        }
+
+        // Создание анимации монет
+        function createCoinsAnimation(amount) {
+            const animation = document.createElement('div');
+            animation.classList.add('coins-animation');
+            animation.textContent = `+${amount} монет!`;
+            animation.style.left = `${Math.random() * 100 + 50}px`;
+            labubuContainer.appendChild(animation);
+            setTimeout(() => animation.remove(), 1500);
+        }
+
+        // Создание визуального эффекта при клике
+        function createClickEffect() {
+            const effect = document.createElement('div');
+            effect.classList.add('click-effect');
+            const rect = labubuContainer.getBoundingClientRect();
+            const x = Math.random() * rect.width;
+            const y = Math.random() * rect.height;
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            labubuContainer.appendChild(effect);
+            setTimeout(() => effect.remove(), 600);
+        }
+
+        // Проверка достижений для бонусов
+        function checkBonuses() {
+            let bonus = 0;
+            let message = "";
+            
+            if (gameState.clicks === 100) {
+                bonus = 20;
+                message = `🎉 100 кликов! Бонус: ${bonus} монет!`;
+            } else if (gameState.clicks === 500) {
+                bonus = 100;
+                message = `🌟 500 кликов! Мега бонус: ${bonus} монет!`;
+            } else if (gameState.clicks === 1000) {
+                bonus = 300;
+                message = `🔥 1000 кликов! Легендарный бонус: ${bonus} монет!`;
+            } else if (gameState.clicks % 100 === 0) {
+                bonus = 10;
+                message = `✨ ${gameState.clicks} кликов! Бонус: ${bonus} монет!`;
+            }
+            
+            if (bonus > 0) {
+                gameState.coins += bonus;
+                showBonusNotification(message);
+                updateStats();
+                saveGameState();
+            }
+        }
+
+        // Показ уведомления о бонусе
+        function showBonusNotification(message) {
+            bonusNotification.textContent = message;
+            bonusNotification.style.display = 'block';
+            setTimeout(() => bonusNotification.style.display = 'none', 3000);
+        }
+
+        // Отображение кейсов
+        function renderCases() {
+            casesContainer.innerHTML = '';
+            cases.forEach(caseItem => {
+                const caseElement = document.createElement('div');
+                caseElement.classList.add('case-item', caseItem.rarity);
+                caseElement.innerHTML = `
+                    <div class="case-title">${caseItem.name}</div>
+                    <img src="${caseItem.image}" alt="${caseItem.name}" class="case-image">
+                    <div class="case-price">${caseItem.price} монет</div>
+                    <button class="case-button" data-case="${caseItem.id}">
+                        Открыть за ${caseItem.price} монет
+                    </button>
+                    <div class="case-chances">
+                        <div class="chance-row">
+                            <div class="chance-name"><div class="chance-dot" style="background: var(--common);"></div> Обычный</div>
+                            <div>${caseItem.chances.find(c => c.rarity === 'common')?.chance || 0}%</div>
+                        </div>
+                        <div class="chance-row">
+                            <div class="chance-name"><div class="chance-dot" style="background: var(--rare);"></div> Редкий</div>
+                            <div>${caseItem.chances.find(c => c.rarity === 'rare')?.chance || 0}%</div>
+                        </div>
+                        <div class="chance-row">
+                            <div class="chance-name"><div class="chance-dot" style="background: var(--epic);"></div> Эпический</div>
+                            <div>${caseItem.chances.find(c => c.rarity === 'epic')?.chance || 0}%</div>
+                        </div>
+                        <div class="chance-row">
+                            <div class="chance-name"><div class="chance-dot" style="background: var(--legendary);"></div> Легендарный</div>
+                            <div>${caseItem.chances.find(c => c.rarity === 'legendary')?.chance || 0}%</div>
+                        </div>
+                    </div>
+                `;
+                casesContainer.appendChild(caseElement);
+                const caseButton = caseElement.querySelector('.case-button');
+                caseButton.addEventListener('click', function(event) {
+                    openCase(caseItem.id, event);
+                });
+            });
+        }
+
+        // Открытие кейса с анимацией
+        function openCase(caseId, event) {
+            const caseItem = cases.find(c => c.id === caseId);
+            if (gameState.coins < caseItem.price) {
+                showBonusNotification(`Недостаточно монет! Нужно: ${caseItem.price}`);
+                return;
+            }
+            gameState.coins -= caseItem.price;
+            updateStats();
+            saveGameState();
+            const button = event.currentTarget;
+            const caseElement = button.closest('.case-item');
+            const caseImage = caseElement.querySelector('.case-image');
+            button.disabled = true;
+            caseImage.classList.add('case-opening-animation');
+            setTimeout(() => {
+                caseImage.classList.remove('case-opening-animation');
+                button.disabled = false;
+                let random = Math.random() * 100;
+                let selectedRarity = "";
+                for (const chance of caseItem.chances) {
+                    if (random < chance.chance) {
+                        selectedRarity = chance.rarity;
+                        break;
+                    }
+                    random -= chance.chance;
+                }
+                const availableLabubus = labubus.filter(l => l.rarity === selectedRarity);
+                const randomIndex = Math.floor(Math.random() * availableLabubus.length);
+                const labubu = availableLabubus[randomIndex];
+                const isNew = !gameState.ownedLabubus.includes(labubu.id);
+                if (isNew) {
+                    gameState.ownedLabubus.push(labubu.id);
+                    recalculateIncome();
+                }
+                showCaseOpening(labubu, isNew, caseItem);
+                renderCollection();
+                saveGameState();
+            }, 2500);
+        }
+
+        // Пересчет дохода
+        function recalculateIncome() {
+            let totalIncome = 0.1;
+            for (const labubuId of gameState.ownedLabubus) {
+                const labubu = labubus.find(l => l.id === labubuId);
+                if (labubu) {
+                    totalIncome += labubu.income;
+                }
+            }
+            gameState.income = totalIncome;
+            updateStats();
+        }
+
+        // Показ анимации открытия кейса
+        function showCaseOpening(labubu, isNew, caseItem) {
+            caseResultTitle.textContent = isNew ? "Новый Лабубу!" : "У вас уже есть этот Лабубу";
+            caseResultImage.src = labubu.image;
+            caseResultImage.alt = labubu.name;
+            caseResultImage.style.borderColor = getRarityColor(labubu.rarity);
+            caseResultName.textContent = labubu.name;
+            caseResultName.innerHTML += ` <span class="rarity-badge ${labubu.rarity}-badge">${getRarityName(labubu.rarity)}</span>`;
+            
+            if (isNew) {
+                caseResultDescription.textContent = `+${labubu.income.toFixed(1)} монет за клик! ${labubu.description}`;
+            } else {
+                const refund = caseItem.price * 0.5;
+                gameState.coins += refund;
+                updateStats();
+                saveGameState();
+                caseResultDescription.textContent = `Вы получаете 50% стоимости кейса обратно! Вы получили ${refund} монет! ${labubu.description}`;
+            }
+            
+            caseOpening.style.display = 'flex';
+        }
+
+        // Получение цвета по редкости
+        function getRarityColor(rarity) {
+            switch(rarity) {
+                case 'common': return 'var(--common)';
+                case 'rare': return 'var(--rare)';
+                case 'epic': return 'var(--epic)';
+                case 'legendary': return 'var(--legendary)';
+                default: return 'var(--common)';
+            }
+        }
+
+        // Получение названия редкости
+        function getRarityName(rarity) {
+            switch(rarity) {
+                case 'common': return 'Обычный';
+                case 'rare': return 'Редкий';
+                case 'epic': return 'Эпический';
+                case 'legendary': return 'Легендарный';
+                default: return '';
+            }
+        }
+
+        // Отображение боссов
+        function renderBosses() {
+            bossesContainer.innerHTML = '';
+            bosses.forEach(boss => {
+                const bossCard = document.createElement('div');
+                bossCard.classList.add('boss-card');
+                if (gameState.defeatedBosses.includes(boss.id)) {
+                    bossCard.classList.add('defeated');
+                }
+                bossCard.innerHTML = `
+                    <img src="${boss.image}" alt="${boss.name}" class="boss-image">
+                    <div class="boss-name">${boss.name}</div>
+                    <div class="boss-stats">
+                        <div class="boss-stat"><span>Скорость:</span> <span>${boss.cps} к/с</span></div>
+                        <div class="boss-stat"><span>Сложность:</span> <span>${Math.round(boss.cps * 10)}/100</span></div>
+                    </div>
+                    <div class="boss-reward">Награда: ${boss.reward} монет</div>
+                    <button class="fight-button ${gameState.defeatedBosses.includes(boss.id) ? 'defeated' : ''}" 
+                        data-boss="${boss.id}">
+                        ${gameState.defeatedBosses.includes(boss.id) ? 'Побежден' : 'Сразиться'}
+                    </button>
+                `;
+                bossesContainer.appendChild(bossCard);
+                if (!gameState.defeatedBosses.includes(boss.id)) {
+                    bossCard.querySelector('.fight-button').addEventListener('click', () => {
+                        startBattle(boss.id);
+                    });
+                }
+            });
+        }
+
+        // Отображение прогресса боссов
+        function renderBossesProgress() {
+            const defeatedCount = gameState.defeatedBosses.length;
+            const totalBosses = bosses.length;
+            bossesProgress.innerHTML = `
+                <div style="text-align: center; margin: 15px 0;">
+                    <div style="font-size: 1rem; margin-bottom: 8px; font-weight: 700;">
+                        Побеждено боссов: ${defeatedCount}/${totalBosses}
+                    </div>
+                    <div style="height: 15px; background: #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                        <div style="height: 100%; background: linear-gradient(90deg, var(--player-color), #2E7D32); width: ${(defeatedCount / totalBosses) * 100}%;"></div>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 0.9rem; font-weight: 600;">
+                        ${defeatedCount === 0 ? 'Начните сражаться с боссами на вкладке "Боссы"' : 
+                          defeatedCount < 7 ? 'Отличное начало! Продолжайте в том же духе!' : 
+                          defeatedCount < 14 ? 'Отличный прогресс! Вы настоящий боец!' : 
+                          'Вы настоящий мастер кликов! Продолжайте!'}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Отображение коллекции
+        function renderCollection() {
+            collectionContainer.innerHTML = '';
+            gameState.ownedLabubus.forEach(labubuId => {
+                const labubu = labubus.find(l => l.id === labubuId);
+                if (!labubu) return;
+                const isSelected = gameState.selectedLabubu === labubuId;
+                const collectionItem = document.createElement('div');
+                collectionItem.classList.add('collection-item');
+                if (isSelected) collectionItem.classList.add('selected');
+                collectionItem.innerHTML = `
+                    <img src="${labubu.image}" alt="${labubu.name}" class="collection-image">
+                    <div class="collection-name">${labubu.name}</div>
+                    <div class="collection-rarity collection-${labubu.rarity}">${getRarityName(labubu.rarity)}</div>
+                    <div class="collection-income">+${labubu.income.toFixed(1)} монет/клик</div>
+                `;
+                collectionContainer.appendChild(collectionItem);
+                collectionItem.addEventListener('click', () => {
+                    gameState.selectedLabubu = labubuId;
+                    updateSelectedLabubu();
+                    renderCollection();
+                    saveGameState();
+                });
+            });
+        }
+
+        // Обновление выбранного лабубу на главном экране
+        function updateSelectedLabubu() {
+            const selectedLabubu = labubus.find(l => l.id === gameState.selectedLabubu);
+            if (selectedLabubu) {
+                labubuImg.src = selectedLabubu.image;
+                labubuImg.alt = selectedLabubu.name;
+            }
+        }
+
+        // Начало битвы с боссом
+        function startBattle(bossId) {
+            const boss = bosses.find(b => b.id === bossId);
+            gameState.currentBoss = boss;
+            
+            // Обновляем активную вкладку
+            navItems.forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('battle-tab').classList.add('active');
+            battleClickButton.style.display = 'block';
+            
+            battleTitle.textContent = `Битва с ${boss.name}`;
+            bossName.textContent = boss.name;
+            bossImg.src = boss.image;
+            bossImg.alt = boss.name;
+            const currentLabubu = labubus.find(l => l.id === gameState.selectedLabubu);
+            playerImg.src = currentLabubu.image;
+            playerImg.alt = currentLabubu.name;
+            gameState.battle.playerScore = 0;
+            gameState.battle.bossScore = 0;
+            gameState.battle.timer = 60;
+            playerScore.textContent = '0';
+            bossScore.textContent = '0';
+            battleTimer.textContent = '60';
+            progressBar.style.width = '50%';
+            battleResult.style.display = 'none';
+            
+            // Очищаем предыдущие интервалы
+            clearInterval(gameState.battle.interval);
+            clearInterval(bossInterval);
+            
+            // Устанавливаем новые интервалы
+            gameState.battle.interval = setInterval(updateBattle, 1000);
+            bossInterval = setInterval(() => {
+                gameState.battle.bossScore += 1;
+                bossScore.textContent = Math.floor(gameState.battle.bossScore);
+                updateProgressBar();
+            }, 1000 / boss.cps);
+        }
+
+        // Обновление битвы
+        function updateBattle() {
+            gameState.battle.timer--;
+            battleTimer.textContent = gameState.battle.timer;
+            if (gameState.battle.timer <= 0) {
+                endBattle();
+            }
+        }
+
+        // Клик игрока в битве
+        function battleClick() {
+            gameState.battle.playerScore += gameState.income;
+            playerScore.textContent = Math.floor(gameState.battle.playerScore);
+            updateProgressBar();
+            playerImg.classList.add('pulse');
+            setTimeout(() => playerImg.classList.remove('pulse'), 200);
+        }
+
+        // Обновление прогресс-бара
+        function updateProgressBar() {
+            const total = gameState.battle.playerScore + gameState.battle.bossScore;
+            if (total === 0) return;
+            const playerPercent = (gameState.battle.playerScore / total) * 100;
+            progressBar.style.width = `${playerPercent}%`;
+        }
+
+        // Завершение битвы
+        function endBattle() {
+            clearInterval(gameState.battle.interval);
+            clearInterval(bossInterval);
+            const playerWon = gameState.battle.playerScore > gameState.battle.bossScore;
+            battleResult.textContent = playerWon ? 'ПОБЕДА!' : 'ПОРАЖЕНИЕ!';
+            battleResult.className = playerWon ? 'battle-result victory' : 'battle-result defeat';
+            battleResult.style.display = 'block';
+            if (playerWon) {
+                const reward = gameState.currentBoss.reward;
+                gameState.coins += reward;
+                gameState.defeatedBosses.push(gameState.currentBoss.id);
+                setTimeout(() => {
+                    showBonusNotification(`🎉 Победа! Вы получили ${reward} монет!`);
+                    updateStats();
+                    renderBosses();
+                    renderBossesProgress();
+                    saveGameState();
+                }, 1000);
+            }
+        }
+
+        // Обработчики событий
+        labubuContainer.addEventListener('click', handleClick);
+        battleClickButton.addEventListener('click', battleClick);
+
+        // Запуск игры при загрузке страницы
+        window.onload = initGame;
+    </script>
+</body>
+</html>
